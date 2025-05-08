@@ -14,29 +14,12 @@
 # soal-1
 **Dikerjakan oleh M. Faqih Ridho (5027241123)**
 
-📖 Penjelasan Soal Nomor 1 (a–g)
-🅰️ a. Struktur Direktori
-File teks rahasia yang harus dikonversi berada dalam file .zip yang dapat diekstrak secara manual. Setelah proses unzip dan kompilasi, struktur direktori proyek menjadi:
+## 📖 Penjelasan Soal Nomor 1 (a–g)
+### 🅰️ a. Struktur Direktori
+File teks rahasia yang harus dikonversi berada dalam file .zip yang dapat diekstrak secara manual. Setelah proses unzip dan kompilasi.
 
-css
-Salin
-Edit
-.
-├── image_client.c
-├── image_server.c
-├── client
-│   ├── image_client
-│   ├── secrets
-│   │   ├── input_1.txt
-│   │   ├── input_2.txt
-│   │   └── ...
-│   └── [hasil_unduhan].jpeg
-└── server
-    ├── image_server
-    ├── server.log
-    └── database
-        └── [hasil_dekripsi].jpeg
-🅱️ b. image_server.c sebagai Daemon
+
+### 🅱️ b. image_server.c sebagai Daemon
 Program image_server.c berjalan secara daemon di background menggunakan fork() dan setsid(). Program ini:
 
 Menunggu koneksi client di port 8080.
@@ -45,7 +28,7 @@ Tidak menampilkan output terminal.
 
 Siap menerima perintah RPC untuk pemrosesan file.
 
-🅲 c. Fungsi image_client.c
+### 🅲 c. Fungsi image_client.c
 Program client (image_client.c) memungkinkan pengguna untuk:
 
 Mengkirim file terenkripsi
@@ -68,12 +51,9 @@ File hasil diunduh ke folder client/.
 
 📌 File tidak pernah dicopy atau dipindah — semua data dikirim melalui socket RPC.
 
-🅳 d. Menu Interaktif image_client.c
+### 🅳 d. Menu Interaktif image_client.c
 Klien menyediakan menu interaktif seperti:
 
-markdown
-Salin
-Edit
 ==============================
 | Klien Pengubah Gambar      |
 ==============================
@@ -83,16 +63,13 @@ Edit
 >> 
 Pengguna dapat memasukkan perintah berkali-kali tanpa harus menjalankan ulang program.
 
-🅴 e. Output JPEG yang Valid
+### 🅴 e. Output JPEG yang Valid
 Setelah klien mengirim file teks, server akan menyimpan hasil dekripsi ke:
 
-pgsql
-Salin
-Edit
 server/database/1744401282.jpeg
 Klien dapat mengunduh file ini dan membuka hasilnya sebagai file gambar JPEG yang valid.
 
-🅵 f. Penanganan Error
+### 🅵 f. Penanganan Error
 Dari Klien:
 
 Gagal koneksi ke server. → jika server tidak aktif.
@@ -105,7 +82,7 @@ File JPEG tidak ditemukan. → dikirim kembali ke klien jika file tidak tersedia
 
 Server tidak pernah crash, dan selalu mengirim pesan respons atau mencatat error ke log.
 
-🅶 g. server.log: Format Pencatatan Aktivitas
+### 🅶 g. server.log: Format Pencatatan Aktivitas
 Semua interaksi client-server dicatat ke:
 
 pgsql
@@ -114,9 +91,6 @@ Edit
 server/server.log
 Dengan format:
 
-less
-Salin
-Edit
 [Client][YYYY-MM-DD hh:mm:ss]: [DECRYPT] [Text data]
 [Server][YYYY-MM-DD hh:mm:ss]: [SAVE] [1744401282.jpeg]
 [Client][YYYY-MM-DD hh:mm:ss]: [DOWNLOAD] [1744401282.jpeg]
