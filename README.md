@@ -14,7 +14,7 @@
 # soal-1
 **Dikerjakan oleh M. Faqih Ridho (5027241123)**
 
-## 📖 Penjelasan Soal Nomor 1 (a–g)
+##  Penjelasan Soal Nomor 1 (a–g)
 ### A. Struktur Direktori
 File teks rahasia yang harus dikonversi berada dalam file .zip yang dapat diekstrak secara manual. Setelah proses unzip dan kompilasi.
 
@@ -49,7 +49,7 @@ Server mengirim file tersebut ke klien.
 
 File hasil diunduh ke folder client/.
 
-📌 File tidak pernah dicopy atau dipindah — semua data dikirim melalui socket RPC.
+ File tidak pernah dicopy atau dipindah — semua data dikirim melalui socket RPC.
 
 ### D.  Menu Interaktif image_client.c
 Klien menyediakan menu interaktif seperti:
