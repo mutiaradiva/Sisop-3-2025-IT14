@@ -730,8 +730,8 @@ if(choice < 1 || choice > 5) {
 
 Sung Jin-Woo, seorang hunter ternama, tengah mengembangkan sebuah sistem manajemen hunter berbasis terminal menggunakan bahasa C. Sistem ini bertujuan untuk mengatur interaksi antar hunter dan dungeon secara real-time dengan memanfaatkan shared memory (IPC). Proyek ini dibagi menjadi dua bagian utama:
 
-`system.c` : Program utama yang mengatur shared memory, dungeon, dan administrasi hunter.
-`hunter.c` : Program untuk hunter yang digunakan untuk registrasi, login, melihat dungeon, menyerang dungeon, dan bertarung antar hunter.
+- `system.c` : Program utama yang mengatur shared memory, dungeon, dan administrasi hunter.
+- `hunter.c` : Program untuk hunter yang digunakan untuk registrasi, login, melihat dungeon, menyerang dungeon, dan bertarung antar hunter.
  
 #### A. Membuat System.c dan Hunter.c dengan catatan hunter.c bisa dijalankan ketika sistem sudah dijalankan.
 
