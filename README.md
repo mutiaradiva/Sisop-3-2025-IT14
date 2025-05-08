@@ -218,8 +218,7 @@ void perintah_kirim(char* target, char* pengirim, Order* data) {
 
   **Pemanggilan fungsi**
   
-  ```
-if (argc == 3 && strcmp(argv[1], "-deliver") == 0) {
+  ```if (argc == 3 && strcmp(argv[1], "-deliver") == 0) {
     char* user = getenv("USER");
     if (!user) user = "USER";
     perintah_kirim(argv[2], user, data);
