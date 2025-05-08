@@ -725,3 +725,632 @@ if(choice < 1 || choice > 5) {
 
 # soal-4
 **Dikerjakan oleh Muhammad Fatihul Qolbi Ash Shiddiqi (5027241023)**
+
+# soal-4
+**Dikerjakan oleh Muhammad Fatihul Qolbi Ash Shiddiqi (5027241023)**
+
+## Deskripsi Soal 
+
+Sung Jin-Woo, seorang hunter ternama, tengah mengembangkan sebuah sistem manajemen hunter berbasis terminal menggunakan bahasa C. Sistem ini bertujuan untuk mengatur interaksi antar hunter dan dungeon secara real-time dengan memanfaatkan shared memory (IPC). Proyek ini dibagi menjadi dua bagian utama:
+
+`system.c` : Program utama yang mengatur shared memory, dungeon, dan administrasi hunter.
+`hunter.c` : Program untuk hunter yang digunakan untuk registrasi, login, melihat dungeon, menyerang dungeon, dan bertarung antar hunter.
+ 
+#### A. Membuat System.c dan Hunter.c dengan catatan hunter.c bisa dijalankan ketika sistem sudah dijalankan.
+
+##### hunter.c 
+```C
+key_t key_hunter = 1234;
+shmid_hunter = shmget(key_hunter, sizeof(struct SystemData), IPC_CREAT | 0666);
+data = (struct SystemData*) shmat(shmid_hunter, NULL, 0);
+if (data->num_hunters < 0 || data->num_hunters > MAX_HUNTERS) {
+    data->num_hunters = 0;
+}
+
+key_t key_dungeon = 5678;
+shmid_dungeon = shmget(key_dungeon, sizeof(struct DungeonData), IPC_CREAT | 0666);
+d_data = (struct DungeonData*) shmat(shmid_dungeon, NULL, 0);
+if (d_data->num_dungeons < 0 || d_data->num_dungeons > MAX_DUNGEONS) {
+    d_data->num_dungeons = 0;
+}
+```
+- `key_t key_hunter = 1234;` → Membuat key unik untuk shared memory hunter. Nilai 1234 akan digunakan kembali di file lain untuk mengakses memori yang sama.
+- `shmid_hunter = shmget(...);` → Mengalokasikan shared memory untuk SystemData. Flag IPC_CREAT | 0666 artinya: buat jika belum ada dan beri permission rw-rw-rw-.
+- `data = (struct SystemData*) shmat(...);` → Menempelkan (attach) shared memory ke proses dan mengembalikannya dalam pointer data.
+- `if (data->num_hunters < 0 ...` → Validasi data: jika nilai awal num_hunters tidak wajar (misal karena memori baru atau rusak), set ulang ke 0.
+- `key_t key_dungeon = 5678;` → Key unik untuk shared memory dungeon, serupa dengan hunter.
+- `shmid_dungeon = shmget(...);` → Alokasi memori untuk dungeon.
+- `d_data = (struct DungeonData*) shmat(...)`; → Attach shared memory dungeon ke pointer d_data.
+- `if (d_data->num_dungeons < 0 ...` → Validasi awal jumlah dungeon untuk mencegah pembacaan data korup.
+
+##### system.c 
+```C
+key_t key_hunter = 1234;
+int shmid_hunter = shmget(key_hunter, sizeof(struct SystemData), 0666);
+if (shmid_hunter == -1) {
+    perror("Shared memory for hunter not found. Please run system first.");
+    exit(1);
+}
+struct SystemData* data = (struct SystemData*) shmat(shmid_hunter, NULL, 0);
+
+key_t key_dungeon = 5678;
+int shmid_dungeon = shmget(key_dungeon, sizeof(struct DungeonData), 0666);
+if (shmid_dungeon == -1) {
+    perror("Shared memory for dungeon not found.");
+    exit(1);
+}
+struct DungeonData* d_data = (struct DungeonData*) shmat(shmid_dungeon, NULL, 0);
+```
+- `key_t key_hunter = 1234;` → Gunakan key yang sama dengan system.c untuk mengakses shared memory hunter.
+- `shmid_hunter = shmget(..., 0666);` → Akses shared memory hunter. Tanpa IPC_CREAT, artinya hunter hanya bisa berjalan jika system sudah aktif.
+- `if (shmid_hunter == -1) { ... }` → Jika tidak ditemukan, tampilkan error dan keluar. Mencegah hunter dijalankan lebih dulu.
+- `shmat(...);` → Attach pointer shared memory hunter ke data.
+- `key_t key_dungeon = 5678;` → Key dungeon harus sama dengan di system.c agar sinkron.
+- `shmid_dungeon = shmget(..., 0666);` → Akses memori dungeon tanpa membuat baru.
+- `if (shmid_dungeon == -1)` { ... } → Cek apakah dungeon memory tersedia. Jika tidak, keluar dengan pesan error.
+- `shmat(...);` → Attach pointer shared memory dungeon ke d_data.
+
+##### Output 
+
+###### system.c 
+![Screenshot 2025-05-08 221151](https://github.com/user-attachments/assets/8d979568-5df2-4a18-97ba-d0ca156c8ad9)
+
+###### hunter.c
+![Screenshot 2025-05-08 221320](https://github.com/user-attachments/assets/0c9e4580-7a08-463e-9474-8a5421bd35d9)
+
+###### hunter.c jika belum menjalankan system.c
+![Screenshot 2025-05-08 221220](https://github.com/user-attachments/assets/6ea483a8-55ff-459f-a77a-0862b77c5c47)
+
+
+
+#### B. Registrasi dan login serta stats awal 
+
+##### hunter.c 
+
+####### Register
+
+```C
+if (choice == 1) {
+    printf("Enter username to register: ");
+    scanf("%s", username);
+    getchar();
+
+    int exists = 0;
+    for (int i = 0; i < data->num_hunters; i++) {
+        if (strcmp(data->hunters[i].username, username) == 0) {
+            exists = 1;
+            break;
+        }
+    }
+
+    if (exists) {
+        printf("Username already exists.\n");
+    } else if (data->num_hunters >= MAX_HUNTERS) {
+        printf("Max hunter limit reached.\n");
+    } else {
+        struct Hunter* h = &data->hunters[data->num_hunters++];
+        strcpy(h->username, username);
+        h->level = 1;
+        h->exp = 0;
+        h->atk = 10;
+        h->hp = 100;
+        h->def = 5;
+        h->banned = 0;
+        printf("Registration successful.\n");
+    }
+}
+```
+
+- Program meminta username dari user.
+- Mengecek apakah username sudah ada di array data->hunters.
+- Jika tidak ada, dan kapasitas belum penuh, maka hunter baru ditambahkan ke sistem dengan level dan stats default.
+
+####### Login
+
+```C
+if (choice == 2) {
+    printf("Enter username to login: ");
+    scanf("%s", username);
+    getchar();
+
+    int found = 0;
+    for (int i = 0; i < data->num_hunters; i++) {
+        if (strcmp(data->hunters[i].username, username) == 0) {
+            if (data->hunters[i].banned) {
+                printf("This account has been banned.\n");
+                found = 1;
+                break;
+            }
+            found = 1;
+            hunter_session(&data->hunters[i], data, d_data);
+            break;
+        }
+    }
+
+    if (!found) {
+        printf("Hunter not found.\n");
+    }
+}
+
+```
+
+- Program menerima username dari user.
+- Melakukan pencarian pada array data->hunters.
+- Jika hunter ditemukan dan tidak dibanned, maka hunter_session() dipanggil untuk masuk ke sesi hunter.
+- Jika tidak ditemukan, akan muncul pesan error.
+
+####### Atribut awal 
+
+```C
+struct Hunter* h = &data->hunters[data->num_hunters++];
+strcpy(h->username, username);
+h->level = 1;
+h->exp = 0;
+h->atk = 10;
+h->hp = 100;
+h->def = 5;
+h->banned = 0;
+```
+
+- `h->level = 1;`: Menetapkan level awal pemain ke level 1 saat pertama kali mendaftar.
+- `h->exp = 0;`: Menetapkan pengalaman awal pemain (EXP) ke 0, karena pemain baru belum memiliki EXP.
+- `h->atk = 10;`: Menetapkan stat serangan (attack) awal pemain ke 10.
+- `h->hp = 100;`: Menetapkan stat kesehatan (hit points) awal pemain ke 100.
+- `h->def = 5;`: Menetapkan stat pertahanan (defense) awal pemain ke 5.
+- `h->banned = 0;` : Menetapkan status pemblokiran (banned) pemain ke 0 (tidak diblokir) saat registrasi
+
+##### Output 
+
+###### registrasi
+![image](https://github.com/user-attachments/assets/25cdcde3-73cd-46d0-89d7-028cda21e073)
+
+###### Login 
+![image](https://github.com/user-attachments/assets/97566c1a-c632-45f2-b1fe-c81d8341fb1d)
+
+###### Atribut awal 
+![image](https://github.com/user-attachments/assets/536be240-b94e-4319-8538-7240bc6a1f06)
+
+#### C. Menampilkan Informasi semua hunter
+
+```C
+void display_hunter_info(struct SystemData* data) {
+    printf("\n=== HUNTER INFO ===\n");
+    for (int i = 0; i < data->num_hunters; i++) {
+        struct Hunter* h = &data->hunters[i];
+        printf("Name: %s\tLevel: %d\tEXP: %d\tATK: %d\tHP: %d\tDEF: %d\tStatus: %s\n",
+               h->username, h->level, h->exp, h->atk, h->hp, h->def,
+               h->banned ? "BANNED" : "ACTIVE");
+    }
+}
+```
+
+- Fungsi ini bertugas untuk menampilkan informasi tentang hunter yang ada dalam sistem.
+- Fungsi ini menerima parameter data, yang merupakan pointer ke struktur SystemData yang menyimpan informasi tentang hunter.
+Di dalam fungsi ini, dilakukan iterasi pada array hunters yang ada dalam data. Setiap hunter akan ditampilkan dengan informasi:
+- Name: Nama hunter.
+- Level: Level hunter.
+- EXP: EXP hunter.
+- ATK: Attack (serangan) hunter.
+- HP: Health points (kesehatan) hunter.
+- DEF: Defense (pertahanan) hunter.
+- Status: Status hunter, apakah BANNED atau ACTIVE (tergantung apakah field banned bernilai 1 atau 0).
+
+###### Output 
+![image](https://github.com/user-attachments/assets/7db9f122-6fcf-416c-a13f-85c044afa63a)
+
+
+#### D. Membuat Dungeon (Generate Dungeon) dengan atribut acak sesuai dengan rentang yang ditentukan 
+
+```C
+const char *dungeon_names[] = {
+    "Double Dungeon", "Demon Castle", "Pyramid Dungeon", "Red Gate Dungeon",
+    "Hunters Guild Dungeon", "Busan A-Rank Dungeon", "Insects Dungeon",
+    "Goblins Dungeon", "D-Rank Dungeon", "Gwanak Mountain Dungeon",
+    "Hapjeong Subway Station Dungeon"
+};
+void generate_dungeon(struct DungeonData* d_data) {
+    if (d_data->num_dungeons >= MAX_DUNGEONS) {
+        printf("Dungeon limit reached.\n");
+        return;
+    }
+
+    struct Dungeon* d = &d_data->dungeons[d_data->num_dungeons];
+
+    strcpy(d->name, dungeon_names[rand() % (sizeof(dungeon_names) / sizeof(dungeon_names[0]))]);
+    d->min_level = rand() % 5 + 1;
+    d->atk_reward = rand() % 51 + 100;
+    d->hp_reward = rand() % 51 + 50;
+    d->def_reward = rand() % 26 + 25;
+    d->exp_reward = rand() % 151 + 150;
+    d->key = generate_key();
+
+    d_data->num_dungeons++;
+
+    printf("\nDungeon generated!\n");
+    printf("Name: %s\n", d->name);
+    printf("Minimum Level: %d\n", d->min_level);
+    printf("ATK: %d\nHP: %d\nDEF: %d\nEXP: %d\nKEY: %lu\n",
+           d->atk_reward, d->hp_reward, d->def_reward, d->exp_reward, d->key);
+}
+```
+- `const char *dungeon_names[]` : Mendeklarasikan semua nama dungeon 
+- Fungsi pertama-tama memeriksa apakah jumlah dungeon yang ada (d_data->num_dungeons) sudah mencapai batas maksimum (MAX_DUNGEONS).
+- Jika sudah, fungsi akan mencetak pesan "Dungeon limit reached." dan keluar tanpa menambah dungeon baru.
+- Menentukan dungeon baru: Jika jumlah dungeon belum mencapai batas, fungsi memilih slot dungeon yang kosong pada array dungeons menggunakan d_data->dungeons[d_data->num_dungeons].
+- Menentukan nama dungeon secara acak: Nama dungeon dipilih secara acak dari array dungeon_names[] menggunakan rand() % (sizeof(dungeon_names) / sizeof(dungeon_names[0])) untuk memilih indeks secara acak.
+
+- Menentukan atribut dungeon secara acak: Level minimal (min_level) untuk dungeon dipilih secara acak antara 1 hingga 5 (rand() % 5 + 1).
+
+Hadiah untuk dungeon ditentukan dengan nilai acak:
+- ATK reward: antara 100 hingga 150 (rand() % 51 + 100).
+- HP reward: antara 50 hingga 100 (rand() % 51 + 50).
+- DEF reward: antara 25 hingga 50 (rand() % 26 + 25).
+- EXP reward: antara 150 hingga 300 (rand() % 151 + 150).
+
+- Menghasilkan kunci unik untuk dungeon: Kunci dungeon `(key)` dihasilkan menggunakan fungsi `generate_key()`, yang menggabungkan waktu saat ini dan nilai acak untuk memastikan kunci unik.
+- Update jumlah dungeon: Setelah dungeon baru dibuat, jumlah dungeon dalam `d_data->num_dungeons` diperbarui dengan menambah 1.
+- Menampilkan informasi dungeon: Fungsi mencetak informasi tentang dungeon yang baru dibuat, termasuk nama dungeon, level minimum, hadiah (ATK, HP, DEF, EXP), dan kunci dungeon (key).
+
+##### Output
+
+![image](https://github.com/user-attachments/assets/ae03036e-3797-4600-bbdf-011d4fbac827)
+
+#### E. Menampilkan seluruh informasi Dungeon
+
+```C
+void display_dungeon_info(struct DungeonData* d_data) {
+    printf("\n=== DUNGEON INFO ===\n");
+    if (d_data->num_dungeons == 0) {
+        printf("No dungeons available.\n");
+        return;
+    }
+
+    for (int i = 0; i < d_data->num_dungeons; i++) {
+        struct Dungeon* d = &d_data->dungeons[i];
+        printf("[Dungeon %d]\n", i + 1);
+        printf("Name: %s\n", d->name);
+        printf("Minimum Level: %d\n", d->min_level);
+        printf("EXP Reward: %d\n", d->exp_reward);
+        printf("ATK: %d\nHP: %d\nDEF: %d\nKEY: %lu\n\n",
+               d->atk_reward, d->hp_reward, d->def_reward, d->key);
+    }
+}
+```
+
+- `printf("\n=== DUNGEON INFO ===\n");` Menampilkan judul untuk informasi dungeon.
+- `if (d_data->num_dungeons == 0)` Memeriksa apakah jumlah dungeon dalam d_data adalah 0. Jika tidak ada dungeon yang tersedia:
+- `printf("No dungeons available.\n");` Menampilkan pesan bahwa tidak ada dungeon yang tersedia.
+- `return;` Menghentikan eksekusi fungsi jika tidak ada dungeon.
+- `for (int i = 0; i < d_data->num_dungeons; i++)` Melakukan iterasi untuk setiap dungeon yang ada dalam d_data->dungeons[] sebanyak jumlah dungeon yang ada (d_data->num_dungeons).
+- `struct Dungeon* d = &d_data->dungeons[i];` Menyimpan pointer ke dungeon yang sedang diproses dalam variabel d.
+- `printf("[Dungeon %d]\n", i + 1);` Menampilkan nomor dungeon yang sedang diproses (dimulai dari 1, bukan 0).
+- `printf("Name: %s\n", d->name);` Menampilkan nama dungeon (d->name).
+- `printf("Minimum Level: %d\n", d->min_level);` Menampilkan level minimum yang dibutuhkan untuk memasuki dungeon (d->min_level).
+- `printf("EXP Reward: %d\n", d->exp_reward);` Menampilkan jumlah EXP yang didapatkan dari dungeon (d->exp_reward).
+- `printf("ATK: %d\nHP: %d\nDEF: %d\nKEY: %lu\n\n", d->atk_reward, d->hp_reward, d->def_reward, d->key);` Menampilkan hadiah dungeon berupa nilai ATK, HP, DEF, dan kunci unik dungeon (d->atk_reward, d->hp_reward, d->def_reward, d->key).
+
+##### Output 
+![image](https://github.com/user-attachments/assets/1ecb65c3-e8df-424b-a93e-13cd6f8b9446)
+
+
+#### F. Hanya dapat menampilkan level minimum sesuai level hunter
+
+```C
+void view_available_dungeons(struct Dungeon* dungeons, int total, int level) {
+    printf("\n=== AVAILABLE DUNGEONS ===\n");
+    int count = 0;
+    for (int i = 0; i < total; i++) {
+        if (strlen(dungeons[i].name) > 0 && dungeons[i].min_level <= level) {
+            printf("%d. %s\t(Level %d+)\n", ++count, dungeons[i].name, dungeons[i].min_level);
+        }
+    }
+    if (count == 0) {
+        printf("No available dungeons for your level.\n");
+    }
+    printf("\nPress enter to continue...");
+    getchar();
+}
+
+```
+
+- `if (strlen(dungeons[i].name) > 0 && dungeons[i].min_level <= level)` Baris ini memastikan bahwa hanya dungeon yang memiliki name yang valid (tidak kosong) dan memiliki min_level yang lebih kecil atau sama dengan level hunter yang ditampilkan.
+- `dungeons[i].min_level <=` level mengecek apakah dungeon tersebut dapat diakses oleh hunter berdasarkan level mereka.
+- `printf("%d. %s\t(Level %d+)\n", ++count, dungeons[i].name, dungeons[i].min_level);`  Jika kondisi di atas terpenuhi, informasi dungeon akan ditampilkan dengan nomor urut, nama dungeon, dan level minimum yang diperlukan untuk memasuki dungeon tersebut.
+
+##### Output 
+
+![image](https://github.com/user-attachments/assets/a83a00e6-5d1a-47f1-be1d-cf0d50be5e01)
+
+
+#### G. Jika exp sudah mencapai 500 , maka naik level dan exp kembali lagi dari 0 
+
+```C
+if (hunter->exp >= 500) {
+    hunter->level++;
+    hunter->exp = 0;
+}
+```
+
+- Kode ini dijalankan setelah hunter berhasil melakukan raid dungeon dan mendapatkan reward EXP dari dungeon.
+- `hunter->exp` adalah jumlah EXP hunter setelah ditambahkan reward dari dungeon yang dipilih.
+
+Jika EXP hunter sekarang sudah >= 500, maka:
+- `hunter->level++` akan menaikkan level hunter sebanyak 1.
+- `hunter->exp = 0` akan mengatur ulang EXP menjadi 0 setelah naik level.
+
+
+##### Output 
+![image](https://github.com/user-attachments/assets/51324ee4-d7d0-4d24-8ed0-528c5523c0a8)
+
+#### H. Mode battle dengan Player Lain PVP dan merampas stats pemain lawan jika kita menang
+
+```C
+void battle_hunter(struct Hunter* self, struct SystemData* data) {
+    printf("\n=== PVP LIST ===\n");
+    for (int i = 0; i < data->num_hunters; i++) {
+        struct Hunter* h = &data->hunters[i];
+        if (strcmp(h->username, self->username) != 0 && !h->banned) {
+            printf("%s - Power: %d\n", h->username, h->atk + h->hp + h->def);
+        }
+    }
+
+    char target_name[50];
+    printf("Target: ");
+    scanf("%s", target_name);
+    getchar();
+
+    struct Hunter* target = NULL;
+    int index = -1;
+    for (int i = 0; i < data->num_hunters; i++) {
+        if (strcmp(data->hunters[i].username, target_name) == 0) {
+            target = &data->hunters[i];
+            index = i;
+            break;
+        }
+    }
+
+    if (!target || target->banned || strcmp(self->username, target->username) == 0) {
+        printf("Invalid target.\n");
+        return;
+    }
+
+    int power_self = self->atk + self->hp + self->def;
+    int power_target = target->atk + target->hp + target->def;
+
+    if (power_self >= power_target) {
+        // Pemenang menyerap stats musuh
+        self->atk += target->atk;
+        self->hp += target->hp;
+        self->def += target->def;
+        for (int i = index; i < data->num_hunters - 1; i++) {
+            data->hunters[i] = data->hunters[i + 1];
+        }
+        data->num_hunters--;
+        printf("You won and absorbed %s's stats!\n", target->username);
+    } else {
+        // Kalah: musuh menyerap stats kita, kita dihapus
+        target->atk += self->atk;
+        target->hp += self->hp;
+        target->def += self->def;
+        for (int i = 0; i < data->num_hunters; i++) {
+            if (strcmp(data->hunters[i].username, self->username) == 0) {
+                for (int j = i; j < data->num_hunters - 1; j++) {
+                    data->hunters[j] = data->hunters[j + 1];
+                }
+                data->num_hunters--;
+                break;
+            }
+        }
+        printf("You lost. You are removed from the system.\n");
+        exit(0);
+    }
+
+    printf("\nPress enter to continue...");
+    getchar();
+}
+
+```
+
+- Loop semua hunter kecuali diri sendiri dan yang tidak di-ban, lalu tampilkan power total mereka (atk + hp + def).
+- User diminta memasukkan nama hunter yang ingin ditantang.
+- Memastikan target valid, bukan diri sendiri, dan tidak di-ban.
+
+Perhitungan Power dan Hasil Pertarungan:
+- Jika power kita ≥ power lawan: Kita menang → stats lawan diserap dan Lawan dihapus dari sistem (hunter list di-shift).
+- Jika power kita < power lawan: Kita kalah → stats kita diserap lawan dan Kita dihapus dari sistem dan program keluar (exit(0)).
+
+
+##### Output Battle 
+![image](https://github.com/user-attachments/assets/321a7c6a-0f25-4c36-b06c-6bc11a12d493)
+
+##### Output stats yang dirampas 
+![image](https://github.com/user-attachments/assets/a3e9df9c-a33c-4e97-bb28-889e17a2187c)
+
+#### I. Ban dan Unban ( Tidak bisa masuk ke menu System Hunter ) 
+
+##### Ban Hunter
+```C
+void ban_hunter(struct SystemData* data) {
+    char name[50];
+    printf("Enter hunter name to ban: ");
+    scanf("%s", name);
+    for (int i = 0; i < data->num_hunters; i++) {
+        if (strcmp(data->hunters[i].username, name) == 0) {
+            data->hunters[i].banned = 1;
+            printf("Hunter '%s' has been banned.\n", name);
+            return;
+        }
+    }
+    printf("Hunter not found.\n");
+}
+```
+
+- Program meminta user untuk memasukkan nama hunter.
+- Dilakukan pencarian pada `array data->hunters` menggunakan `strcmp`.
+- Jika ditemukan, nilai `banned` pada hunter tersebut di-set ke 1, menandakan hunter tersebut dibanned.
+- Jika tidak ditemukan, akan ditampilkan pesan "Hunter not found.".
+
+##### Unban Hunter
+
+```C
+void unban_hunter(struct SystemData* data) {
+    char name[50];
+    printf("Enter hunter name to unban: ");
+    scanf("%s", name);
+    for (int i = 0; i < data->num_hunters; i++) {
+        if (strcmp(data->hunters[i].username, name) == 0) {
+            data->hunters[i].banned = 0;
+            printf("Hunter '%s' has been unbanned.\n", name);
+            return;
+        }
+    }
+    printf("Hunter not found.\n");
+}
+```
+
+- Mirip dengan ban_hunter, tetapi justru mengubah banned menjadi 0 (aktif kembali).
+- Berguna untuk membatalkan status banned pada hunter yang sebelumnya diblokir.
+
+##### Output Ban Hunter
+![image](https://github.com/user-attachments/assets/e40740cb-1ce8-410b-b0ea-82a88fc0f4a0)
+
+
+##### Pemain tidak bisa login ke menu hunter 
+![image](https://github.com/user-attachments/assets/e1234c0f-bcc7-4360-8e21-f761b2e324da)
+
+
+##### Output Unban Hunter
+![image](https://github.com/user-attachments/assets/4adb06f1-d705-4c99-90eb-e70611f5522a)
+
+#### J. Membuat menu reset untuk hunter bertobat ( Mengembalikan ke level 1 dan stats awal ) 
+
+```C
+void reset_hunter(struct SystemData* data) {
+    char name[50];
+    printf("Enter hunter name to reset: ");
+    scanf("%s", name);
+    for (int i = 0; i < data->num_hunters; i++) {
+        if (strcmp(data->hunters[i].username, name) == 0) {
+            data->hunters[i].level = 1;
+            data->hunters[i].exp = 0;
+            data->hunters[i].atk = 10;
+            data->hunters[i].hp = 100;
+            data->hunters[i].def = 5;
+            data->hunters[i].banned = 0;
+            printf("Hunter '%s' has been reset.\n", name);
+            return;
+        }
+    }
+    printf("Hunter not found.\n");
+}
+```
+
+- `scanf("%s", name);` Meminta pengguna memasukkan nama hunter yang ingin di-reset.
+- `for (int i = 0; i < data->num_hunters; i++) {
+    if (strcmp(data->hunters[i].username, name) == 0) {`
+    Melakukan iterasi seluruh data hunter dan Membandingkan username hunter satu per satu dengan input name.
+-
+`data->hunters[i].level = 1;
+data->hunters[i].exp = 0;
+data->hunters[i].atk = 10;
+data->hunters[i].hp = 100;
+data->hunters[i].def = 5;
+data->hunters[i].banned = 0;` 
+
+Mengatur kembali status hunter ke kondisi awal:
+level = 1
+exp = 0
+atk = 10
+hp = 100
+def = 5
+banned = 0 (hunter otomatis diaktifkan kembali jika sebelumnya dibanned)
+
+##### Output 
+![image](https://github.com/user-attachments/assets/f5ae418a-354a-4ff3-a59d-6cd46c8e1196)
+
+
+#### K. Fitur Notifikasi dungeon yang berubah setiap 3 detik 
+
+```C
+int running_notification = 0;
+pthread_t notification_thread;
+struct DungeonData* global_d_data = NULL;
+pthread_mutex_t print_lock = PTHREAD_MUTEX_INITIALIZER;
+
+void* notification_loop(void* arg) {
+    int index = 0;
+    while (running_notification) {
+        pthread_mutex_lock(&print_lock);
+        printf("\033[s"); // Simpan posisi kursor
+        printf("\033[2;1H%-60s", " "); // Bersihkan baris 2
+        if (global_d_data == NULL || global_d_data->num_dungeons == 0) {
+            printf("\033[2;1HNo active dungeons.");
+        } else {
+            struct Dungeon* d = &global_d_data->dungeons[index % global_d_data->num_dungeons];
+            printf("\033[2;1H%s (Min. Lv %d)", d->name, d->min_level);
+            index++;
+        }
+        printf("\033[u"); // Kembalikan posisi kursor
+        fflush(stdout);
+        pthread_mutex_unlock(&print_lock);
+        sleep(3); // Ganti notifikasi setiap 3 detik
+    }
+    return NULL;
+}
+void start_notification(struct DungeonData* d_data) {
+    if (!running_notification) {
+        running_notification = 1;
+        global_d_data = d_data;
+        pthread_create(&notification_thread, NULL, notification_loop, NULL);
+    }
+}
+
+```
+
+- `running_notification` → Menandai apakah thread notifikasi sedang berjalan.
+- `notification_thread` → ID thread yang dijalankan untuk notifikasi.
+- `global_d_data` → Referensi ke data dungeon dari shared memory.
+- `print_lock` → Menghindari konflik cetak antara notifikasi dan menu utama.
+
+- Loop akan terus berjalan selama running_notification aktif.
+- Menggunakan `ANSI` escape `(\033[2;1H)` untuk menulis di baris ke-2 kolom pertama.
+- Setiap 3 detik, dungeon berikutnya akan ditampilkan (berdasarkan indeks).
+- Menggunakan `mutex` agar tidak tumpang tindih dengan tampilan menu utama.
+
+- Mengecek apakah notifikasi sudah aktif. Jika belum:
+- `Set running_notification = 1`
+- Simpan referensi dungeon data `(global_d_data)`
+- Buat thread baru yang menjalankan `notification_loop`
+
+##### Output 
+![image](https://github.com/user-attachments/assets/8b27168d-d78d-46a9-a03a-2483580ea580)
+
+#### L. Clean Shared Memory
+
+```C
+void cleanup(int signal) {
+    printf("\nCleaning up shared memory...\n");
+    shmdt(data);
+    shmdt(d_data);
+    shmctl(shmid_hunter, IPC_RMID, NULL);
+    shmctl(shmid_dungeon, IPC_RMID, NULL);
+    exit(0);
+}
+```
+
+- `void cleanup(int signal)` Mendefinisikan fungsi cleanup yang menerima satu argumen bertipe int (nomor sinyal).
+- `printf("\nCleaning up shared memory...\n");` Menampilkan pesan ke terminal bahwa sistem sedang membersihkan shared memory.
+- `shmdt(data);` Detach (melepaskan) pointer data dari segmen shared memory hunter (SystemData), agar tidak lagi diakses oleh proses ini.
+- `shmdt(d_data);` Detach pointer d_data dari segmen shared memory dungeon (DungeonData).
+- `shmctl(shmid_hunter, IPC_RMID, NULL);` Menghapus segmen shared memory hunter dari sistem menggunakan IPC_RMID (hapus permanent).
+- `shmctl(shmid_dungeon, IPC_RMID, NULL);` Menghapus segmen shared memory dungeon dari sistem.
+- `exit(0);`  Mengakhiri proses program dengan status sukses (kode keluar 0).
+
+##### Output sebelum diexit
+![image](https://github.com/user-attachments/assets/fe42a3a8-473b-4b1d-980f-6b1092ca90d8)
+
+### Setelah diexit , program akan otomatis menghapus shared memory 
+![image](https://github.com/user-attachments/assets/74a06c8f-6600-43ba-9907-850c407094ce)
+
+![image](https://github.com/user-attachments/assets/7579bd28-7c4e-4548-a471-05c7ed0c664c)
+
