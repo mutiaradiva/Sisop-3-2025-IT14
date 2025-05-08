@@ -217,13 +217,13 @@ void perintah_kirim(char* target, char* pengirim, Order* data) {
 - Catatan pengiriman ditulis ke file delivery.log sesuai format soal.
 
   **Pemanggilan fungsi**
+  
   ```
 if (argc == 3 && strcmp(argv[1], "-deliver") == 0) {
     char* user = getenv("USER");
     if (!user) user = "USER";
     perintah_kirim(argv[2], user, data);
-}
-  ```
+} ```
 
 - Bagian ini ada di main() dispatcher.
 
@@ -232,6 +232,7 @@ if (argc == 3 && strcmp(argv[1], "-deliver") == 0) {
 - Lalu memanggil perintah_kirim.
 
 ### D. Mengecek Status Pesanan
+
 ```
 void perintah_status(char* nama, Order* data) {
     for (int i = 0; i < MAX_ORDERS; i++) {
@@ -245,7 +246,6 @@ void perintah_status(char* nama, Order* data) {
     }
     printf("Status for %s: Not found\\n", nama);
 }
-
 ```
 
 - Fungsi ini mencari nama dalam array order.
