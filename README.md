@@ -726,9 +726,6 @@ if(choice < 1 || choice > 5) {
 # soal-4
 **Dikerjakan oleh Muhammad Fatihul Qolbi Ash Shiddiqi (5027241023)**
 
-# soal-4
-**Dikerjakan oleh Muhammad Fatihul Qolbi Ash Shiddiqi (5027241023)**
-
 ## Deskripsi Soal 
 
 Sung Jin-Woo, seorang hunter ternama, tengah mengembangkan sebuah sistem manajemen hunter berbasis terminal menggunakan bahasa C. Sistem ini bertujuan untuk mengatur interaksi antar hunter dan dungeon secara real-time dengan memanfaatkan shared memory (IPC). Proyek ini dibagi menjadi dua bagian utama:
@@ -738,7 +735,7 @@ Sung Jin-Woo, seorang hunter ternama, tengah mengembangkan sebuah sistem manajem
  
 #### A. Membuat System.c dan Hunter.c dengan catatan hunter.c bisa dijalankan ketika sistem sudah dijalankan.
 
-##### hunter.c 
+#### hunter.c 
 ```C
 key_t key_hunter = 1234;
 shmid_hunter = shmget(key_hunter, sizeof(struct SystemData), IPC_CREAT | 0666);
@@ -763,7 +760,7 @@ if (d_data->num_dungeons < 0 || d_data->num_dungeons > MAX_DUNGEONS) {
 - `d_data = (struct DungeonData*) shmat(...)`; → Attach shared memory dungeon ke pointer d_data.
 - `if (d_data->num_dungeons < 0 ...` → Validasi awal jumlah dungeon untuk mencegah pembacaan data korup.
 
-##### system.c 
+#### system.c 
 ```C
 key_t key_hunter = 1234;
 int shmid_hunter = shmget(key_hunter, sizeof(struct SystemData), 0666);
@@ -790,24 +787,24 @@ struct DungeonData* d_data = (struct DungeonData*) shmat(shmid_dungeon, NULL, 0)
 - `if (shmid_dungeon == -1)` { ... } → Cek apakah dungeon memory tersedia. Jika tidak, keluar dengan pesan error.
 - `shmat(...);` → Attach pointer shared memory dungeon ke d_data.
 
-##### Output 
+#### Output 
 
-###### system.c 
+#### system.c 
 ![Screenshot 2025-05-08 221151](https://github.com/user-attachments/assets/8d979568-5df2-4a18-97ba-d0ca156c8ad9)
 
-###### hunter.c
+#### hunter.c
 ![Screenshot 2025-05-08 221320](https://github.com/user-attachments/assets/0c9e4580-7a08-463e-9474-8a5421bd35d9)
 
-###### hunter.c jika belum menjalankan system.c
+#### hunter.c jika belum menjalankan system.c
 ![Screenshot 2025-05-08 221220](https://github.com/user-attachments/assets/6ea483a8-55ff-459f-a77a-0862b77c5c47)
 
 
 
 #### B. Registrasi dan login serta stats awal 
 
-##### hunter.c 
+#### hunter.c 
 
-####### Register
+#### Register
 
 ```C
 if (choice == 1) {
@@ -845,7 +842,7 @@ if (choice == 1) {
 - Mengecek apakah username sudah ada di array data->hunters.
 - Jika tidak ada, dan kapasitas belum penuh, maka hunter baru ditambahkan ke sistem dengan level dan stats default.
 
-####### Login
+#### Login
 
 ```C
 if (choice == 2) {
@@ -879,7 +876,7 @@ if (choice == 2) {
 - Jika hunter ditemukan dan tidak dibanned, maka hunter_session() dipanggil untuk masuk ke sesi hunter.
 - Jika tidak ditemukan, akan muncul pesan error.
 
-####### Atribut awal 
+#### Atribut awal 
 
 ```C
 struct Hunter* h = &data->hunters[data->num_hunters++];
@@ -899,15 +896,15 @@ h->banned = 0;
 - `h->def = 5;`: Menetapkan stat pertahanan (defense) awal pemain ke 5.
 - `h->banned = 0;` : Menetapkan status pemblokiran (banned) pemain ke 0 (tidak diblokir) saat registrasi
 
-##### Output 
+#### Output 
 
-###### registrasi
+#### registrasi
 ![image](https://github.com/user-attachments/assets/25cdcde3-73cd-46d0-89d7-028cda21e073)
 
-###### Login 
+#### Login 
 ![image](https://github.com/user-attachments/assets/97566c1a-c632-45f2-b1fe-c81d8341fb1d)
 
-###### Atribut awal 
+#### Atribut awal 
 ![image](https://github.com/user-attachments/assets/536be240-b94e-4319-8538-7240bc6a1f06)
 
 #### C. Menampilkan Informasi semua hunter
@@ -935,7 +932,7 @@ Di dalam fungsi ini, dilakukan iterasi pada array hunters yang ada dalam data. S
 - DEF: Defense (pertahanan) hunter.
 - Status: Status hunter, apakah BANNED atau ACTIVE (tergantung apakah field banned bernilai 1 atau 0).
 
-###### Output 
+#### Output 
 ![image](https://github.com/user-attachments/assets/7db9f122-6fcf-416c-a13f-85c044afa63a)
 
 
@@ -991,7 +988,7 @@ Hadiah untuk dungeon ditentukan dengan nilai acak:
 - Update jumlah dungeon: Setelah dungeon baru dibuat, jumlah dungeon dalam `d_data->num_dungeons` diperbarui dengan menambah 1.
 - Menampilkan informasi dungeon: Fungsi mencetak informasi tentang dungeon yang baru dibuat, termasuk nama dungeon, level minimum, hadiah (ATK, HP, DEF, EXP), dan kunci dungeon (key).
 
-##### Output
+#### Output
 
 ![image](https://github.com/user-attachments/assets/ae03036e-3797-4600-bbdf-011d4fbac827)
 
@@ -1029,7 +1026,7 @@ void display_dungeon_info(struct DungeonData* d_data) {
 - `printf("EXP Reward: %d\n", d->exp_reward);` Menampilkan jumlah EXP yang didapatkan dari dungeon (d->exp_reward).
 - `printf("ATK: %d\nHP: %d\nDEF: %d\nKEY: %lu\n\n", d->atk_reward, d->hp_reward, d->def_reward, d->key);` Menampilkan hadiah dungeon berupa nilai ATK, HP, DEF, dan kunci unik dungeon (d->atk_reward, d->hp_reward, d->def_reward, d->key).
 
-##### Output 
+#### Output 
 ![image](https://github.com/user-attachments/assets/1ecb65c3-e8df-424b-a93e-13cd6f8b9446)
 
 
@@ -1057,7 +1054,7 @@ void view_available_dungeons(struct Dungeon* dungeons, int total, int level) {
 - `dungeons[i].min_level <=` level mengecek apakah dungeon tersebut dapat diakses oleh hunter berdasarkan level mereka.
 - `printf("%d. %s\t(Level %d+)\n", ++count, dungeons[i].name, dungeons[i].min_level);`  Jika kondisi di atas terpenuhi, informasi dungeon akan ditampilkan dengan nomor urut, nama dungeon, dan level minimum yang diperlukan untuk memasuki dungeon tersebut.
 
-##### Output 
+#### Output 
 
 ![image](https://github.com/user-attachments/assets/a83a00e6-5d1a-47f1-be1d-cf0d50be5e01)
 
@@ -1079,7 +1076,7 @@ Jika EXP hunter sekarang sudah >= 500, maka:
 - `hunter->exp = 0` akan mengatur ulang EXP menjadi 0 setelah naik level.
 
 
-##### Output 
+#### Output 
 ![image](https://github.com/user-attachments/assets/51324ee4-d7d0-4d24-8ed0-528c5523c0a8)
 
 #### H. Mode battle dengan Player Lain PVP dan merampas stats pemain lawan jika kita menang
@@ -1160,15 +1157,15 @@ Perhitungan Power dan Hasil Pertarungan:
 - Jika power kita < power lawan: Kita kalah → stats kita diserap lawan dan Kita dihapus dari sistem dan program keluar (exit(0)).
 
 
-##### Output Battle 
+#### Output Battle 
 ![image](https://github.com/user-attachments/assets/321a7c6a-0f25-4c36-b06c-6bc11a12d493)
 
-##### Output stats yang dirampas 
+#### Output stats yang dirampas 
 ![image](https://github.com/user-attachments/assets/a3e9df9c-a33c-4e97-bb28-889e17a2187c)
 
 #### I. Ban dan Unban ( Tidak bisa masuk ke menu System Hunter ) 
 
-##### Ban Hunter
+#### Ban Hunter
 ```C
 void ban_hunter(struct SystemData* data) {
     char name[50];
@@ -1190,7 +1187,7 @@ void ban_hunter(struct SystemData* data) {
 - Jika ditemukan, nilai `banned` pada hunter tersebut di-set ke 1, menandakan hunter tersebut dibanned.
 - Jika tidak ditemukan, akan ditampilkan pesan "Hunter not found.".
 
-##### Unban Hunter
+#### Unban Hunter
 
 ```C
 void unban_hunter(struct SystemData* data) {
@@ -1211,15 +1208,15 @@ void unban_hunter(struct SystemData* data) {
 - Mirip dengan ban_hunter, tetapi justru mengubah banned menjadi 0 (aktif kembali).
 - Berguna untuk membatalkan status banned pada hunter yang sebelumnya diblokir.
 
-##### Output Ban Hunter
+#### Output Ban Hunter
 ![image](https://github.com/user-attachments/assets/e40740cb-1ce8-410b-b0ea-82a88fc0f4a0)
 
 
-##### Pemain tidak bisa login ke menu hunter 
+#### Pemain tidak bisa login ke menu hunter 
 ![image](https://github.com/user-attachments/assets/e1234c0f-bcc7-4360-8e21-f761b2e324da)
 
 
-##### Output Unban Hunter
+#### Output Unban Hunter
 ![image](https://github.com/user-attachments/assets/4adb06f1-d705-4c99-90eb-e70611f5522a)
 
 #### J. Membuat menu reset untuk hunter bertobat ( Mengembalikan ke level 1 dan stats awal ) 
@@ -1265,7 +1262,7 @@ hp = 100
 def = 5
 banned = 0 (hunter otomatis diaktifkan kembali jika sebelumnya dibanned)
 
-##### Output 
+#### Output 
 ![image](https://github.com/user-attachments/assets/f5ae418a-354a-4ff3-a59d-6cd46c8e1196)
 
 
@@ -1322,7 +1319,7 @@ void start_notification(struct DungeonData* d_data) {
 - Simpan referensi dungeon data `(global_d_data)`
 - Buat thread baru yang menjalankan `notification_loop`
 
-##### Output 
+#### Output 
 ![image](https://github.com/user-attachments/assets/8b27168d-d78d-46a9-a03a-2483580ea580)
 
 #### L. Clean Shared Memory
@@ -1346,11 +1343,12 @@ void cleanup(int signal) {
 - `shmctl(shmid_dungeon, IPC_RMID, NULL);` Menghapus segmen shared memory dungeon dari sistem.
 - `exit(0);`  Mengakhiri proses program dengan status sukses (kode keluar 0).
 
-##### Output sebelum diexit
+#### Output sebelum diexit
 ![image](https://github.com/user-attachments/assets/fe42a3a8-473b-4b1d-980f-6b1092ca90d8)
 
-### Setelah diexit , program akan otomatis menghapus shared memory 
+#### Setelah diexit , program akan otomatis menghapus shared memory 
 ![image](https://github.com/user-attachments/assets/74a06c8f-6600-43ba-9907-850c407094ce)
 
 ![image](https://github.com/user-attachments/assets/7579bd28-7c4e-4548-a471-05c7ed0c664c)
+
 
