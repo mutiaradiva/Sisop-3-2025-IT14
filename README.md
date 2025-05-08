@@ -384,6 +384,9 @@ if (strstr(buffer, "Choose an option:") || strstr(buffer, "Enter")) {
 - Ketika isi buffer memuat string seperti `"Choose an option:"`, artinya server meminta input menu.
 - Pemain memasukkan pilihan → dikirim ke server.
 
+### Output
+<img width="277" alt="image" src="https://github.com/user-attachments/assets/8c7c8133-a9f7-4559-b09a-82ca27d63283" />
+
 ## c. Jika opsi Show Player Stats dipilih, maka program akan menunjukan Uang yang dimiliki (Jumlah dibebaskan), senjata yang sedang digunakan, Base Damage, dan jumlah musuh yang telah dimusnahkan.
 ```
 void show_stats(int sock, PlayerState* ps) {
@@ -417,6 +420,9 @@ void show_stats(int sock, PlayerState* ps) {
 - `base_damage`: Damage dari senjata yang digunakan (default ke `base_damage` jika pakai Fists).
 - `ps->kills`: Jumlah musuh yang dimusnahkan.
 - Semua ini disusun dalam `buffer` dan dikirim ke klien melalui `send_str(sock, buffer);`.
+
+### Output
+<img width="516" alt="image" src="https://github.com/user-attachments/assets/bf6eade8-0130-4306-a0fa-9fb9ec07af16" />
 
 ## d. Disaat opsi Shop dipilih, program akan menunjukan senjata apa saja yang dapat dibeli beserta harga, damage, dan juga passive (jika ada)
 
@@ -459,6 +465,9 @@ void show_shop(int sock, PlayerState* ps) {
 - show_shop_weapons(sock) memunculkan semua senjata di toko.
 - receive_choice() menerima nomor senjata dari player.
 - buy_weapon() digunakan jika player memilih membeli.
+
+### Output
+<img width="554" alt="image" src="https://github.com/user-attachments/assets/8d7bbe86-fcdd-4c15-952c-07dc2a06cc36" />
 
 ## e. Jika opsi View Inventory dipilih, program akan menunjukan senjata apa saja yang dimiliki dan dapat dipakai (jika senjata memiliki passive, tunjukan juga passive tersebut). Apabila opsi Show Player Stats dipilih saat menggunakan weapon maka Base Damage player akan berubah dan jika memiliki passive, maka akan ada status tambahan yaitu Passive.
 
@@ -504,6 +513,9 @@ void show_inventory(int sock, PlayerState* ps) {
 - Jika senjata memiliki passive, akan muncul (Passive: NamaPassive).
 - Senjata yang sedang digunakan akan muncul dengan label (EQUIPPED).
 
+### Output
+<img width="454" alt="image" src="https://github.com/user-attachments/assets/0cda3024-e66e-4fe2-be56-4facf27b2b55" />
+
 ### Show Player Stats – Fungsi show_stats()
 ```
 void show_stats(int sock, PlayerState* ps) {
@@ -538,6 +550,9 @@ Menampilkan:
 - Base Damage berdasarkan damage senjata yang digunakan,
 - Passive jika senjata punya passive,
 - Jumlah kill.
+
+### Output
+<img width="764" alt="image" src="https://github.com/user-attachments/assets/757a96bb-27e4-4122-98f5-429b40d0ac63" />
 
 ## f. Opsi Battle Mode
 
@@ -578,6 +593,9 @@ if(strncmp(input, "attack", 6) == 0) {
 - Damage disesuaikan dengan senjata yang digunakan.
 - HP musuh dikurangi, dan pesan damage dikirim ke client.
 
+### Output
+<img width="392" alt="image" src="https://github.com/user-attachments/assets/77ada146-87fe-4075-9ea0-aae306806350" />
+
 ### Jika musuh mati: Reward + Musuh Baru
 ```
 if(enemy.hp <= 0) {
@@ -597,6 +615,9 @@ Jika HP musuh 0 atau kurang:
 - Jumlah kills pemain bertambah.
 - Pemain mendapatkan reward berdasarkan enemy.max_hp * 10.
 - Musuh baru otomatis muncul.
+
+### Output
+<img width="400" alt="image" src="https://github.com/user-attachments/assets/f202d738-19fa-4d28-a2bd-af1d10d64243" />
 
 ## g. Other Battle Logic
 
@@ -658,7 +679,7 @@ send_str(sock, buffer);
 - Misalnya jika musuh punya 100 HP → (10–30)*2 = 20–60 gold.
 
 ## h. Error Handling
-### Error handling di Weapon Shop
+### Error Handling di Weapon Shop
 ```
 if(choice > 0 && choice < shop_size) {
         buy_weapon(sock, choice, &ps->gold, ps->inventory, &ps->inventory_count);
@@ -666,6 +687,9 @@ if(choice > 0 && choice < shop_size) {
         send_str(sock, RED "Invalid choice!\n" RESET);
     }
 ```
+### Output
+<img width="545" alt="image" src="https://github.com/user-attachments/assets/c5907f3e-ea41-43aa-8176-f15adf4351f0" />
+
 ### Error Handling di Inventory
 ```
  if(choice != 0) {
@@ -677,12 +701,18 @@ if(choice > 0 && choice < shop_size) {
         }
     }
 ```
+### Output
+<img width="452" alt="image" src="https://github.com/user-attachments/assets/784499f6-0713-4660-9a76-806d3d10ca21" />
+
 ### Error Handling di Battle Mode
 ```
         else {
             send_str(sock, RED "\nInvalid command! Use 'attack' or 'exit'.\n" RESET);
         }
 ```
+### Output
+<img width="388" alt="image" src="https://github.com/user-attachments/assets/ed787a07-3feb-408f-921e-e2f3e688be2a" />
+
 ### Error Handling di Main Menu
 ```
 if(choice < 1 || choice > 5) {
@@ -690,6 +720,8 @@ if(choice < 1 || choice > 5) {
             continue;
         }
 ```
+### Output
+<img width="273" alt="image" src="https://github.com/user-attachments/assets/c4e08f69-69d4-45d6-b72b-774ae439f0a7" />
 
 # soal-4
 **Dikerjakan oleh Muhammad Fatihul Qolbi Ash Shiddiqi (5027241023)**
