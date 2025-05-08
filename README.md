@@ -306,6 +306,12 @@ else if (argc == 2 && strcmp(argv[1], "-list") == 0) {
     perintah_list(data);
 }
 ```
+### output
+
+![image](https://github.com/user-attachments/assets/afb40e53-f710-4eb3-a83b-142c2bb52d83)
+
+![image](https://github.com/user-attachments/assets/0039d2c0-c123-49de-a3fa-93829898cabb)
+
 
 
 # soal-3
