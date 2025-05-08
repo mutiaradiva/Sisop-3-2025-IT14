@@ -53,14 +53,16 @@ File hasil diunduh ke folder client/.
 
 ### 🅳  Menu Interaktif image_client.c
 Klien menyediakan menu interaktif seperti:
-
+```
 ==============================
 | Klien Pengubah Gambar      |
 ==============================
 1. Kirim file ke server
 2. Unduh file dari server
 3. Keluar
->> 
+>>
+```
+
 Pengguna dapat memasukkan perintah berkali-kali tanpa harus menjalankan ulang program.
 
 ### 🅴  Output JPEG yang Valid
