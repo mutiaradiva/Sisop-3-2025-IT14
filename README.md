@@ -98,13 +98,12 @@ Log mencakup semua:
 Koneksi,Upload,Download,Error,Exit.
 
 ### output
-![image](img src="https://github.com/user-attachments/assets/e935e3dd-bbb3-4d18-9819-cbea609652f1" width="500")
+![image](https://github.com/user-attachments/assets/e935e3dd-bbb3-4d18-9819-cbea609652f1)
 
+![image](https://github.com/user-attachments/assets/08cf632f-a5dd-408b-a671-ba254f892a14)
 
-![image](img src="https://github.com/user-attachments/assets/08cf632f-a5dd-408b-a671-ba254f892a14" width="500")
+![image](https://github.com/user-attachments/assets/6cc31aac-c3f4-4d8f-aa17-5eb8686e5ebd)
 
-
-![image](img src="https://github.com/user-attachments/assets/6cc31aac-c3f4-4d8f-aa17-5eb8686e5ebd" width="500")
 
 
 
