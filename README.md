@@ -15,11 +15,11 @@
 **Dikerjakan oleh M. Faqih Ridho (5027241123)**
 
 ## 📖 Penjelasan Soal Nomor 1 (a–g)
-### 🅰️  Struktur Direktori
+### A. Struktur Direktori
 File teks rahasia yang harus dikonversi berada dalam file .zip yang dapat diekstrak secara manual. Setelah proses unzip dan kompilasi.
 
 
-### 🅱️  image_server.c sebagai Daemon
+### B.  image_server.c sebagai Daemon
 Program image_server.c berjalan secara daemon di background menggunakan fork() dan setsid(). Program ini:
 
 Menunggu koneksi client di port 8080.
@@ -28,7 +28,7 @@ Tidak menampilkan output terminal.
 
 Siap menerima perintah RPC untuk pemrosesan file.
 
-### 🅲  Fungsi image_client.c
+### C.  Fungsi image_client.c
 Program client (image_client.c) memungkinkan pengguna untuk:
 
 Mengkirim file terenkripsi
@@ -51,7 +51,7 @@ File hasil diunduh ke folder client/.
 
 📌 File tidak pernah dicopy atau dipindah — semua data dikirim melalui socket RPC.
 
-### 🅳  Menu Interaktif image_client.c
+### D.  Menu Interaktif image_client.c
 Klien menyediakan menu interaktif seperti:
 ```
 ==============================
@@ -65,13 +65,13 @@ Klien menyediakan menu interaktif seperti:
 
 Pengguna dapat memasukkan perintah berkali-kali tanpa harus menjalankan ulang program.
 
-### 🅴  Output JPEG yang Valid
+### E.  Output JPEG yang Valid
 Setelah klien mengirim file teks, server akan menyimpan hasil dekripsi ke:
 
 server/database/1744401282.jpeg
 Klien dapat mengunduh file ini dan membuka hasilnya sebagai file gambar JPEG yang valid.
 
-### 🅵  Penanganan Error
+### F.  Penanganan Error
 Dari Klien:
 
 Gagal koneksi ke server. → jika server tidak aktif.
@@ -84,12 +84,9 @@ File JPEG tidak ditemukan. → dikirim kembali ke klien jika file tidak tersedia
 
 Server tidak pernah crash, dan selalu mengirim pesan respons atau mencatat error ke log.
 
-### 🅶  server.log: Format Pencatatan Aktivitas
+### G  server.log: Format Pencatatan Aktivitas
 Semua interaksi client-server dicatat ke:
 
-pgsql
-Salin
-Edit
 server/server.log
 Dengan format:
 
@@ -98,21 +95,209 @@ Dengan format:
 [Client][YYYY-MM-DD hh:mm:ss]: [DOWNLOAD] [1744401282.jpeg]
 [Server][YYYY-MM-DD hh:mm:ss]: [SEND] [1744401282.jpeg]
 Log mencakup semua:
-
-Koneksi,
-
-Upload,
-
-Download,
-
-Error,
-
-Exit.
+Koneksi,Upload,Download,Error,Exit.
 
 
 
 # soal-2
 **Dikerjakan oleh  M. Faqih Ridho (5027241123)**
+
+### A. Mengunduh dan unzip
+
+```
+wget --content-disposition "https://drive.google.com/uc?export=download&id=1OJfRuLgsBnIBWtdRXbRsD2sG6NhMKOg9"
+```
+
+### B. Pengiriman Bertipe Express
+Kode berikut ditulis dalam file `delivery_agent.c`. Tiga thread dibuat dengan `pthread_create`, lalu masing-masing thread menjalankan fungsi `jalankan_agen()` untuk memeriksa shared memory dan memproses order Express yang pending.
+
+```
+#include "order.h"
+#include <pthread.h>
+#include <unistd.h>
+#include <stdio.h>
+#include <time.h>
+#include <string.h>
+
+void* jalankan_agen(void* arg) {
+    char* agen = (char*) arg;
+    int id;
+    Order* daftar = attach_shared_memory(&id);
+
+    while (1) {
+        for (int i = 0; i < MAX_ORDERS; i++) {
+            if (strcmp(daftar[i].jenis, "Express") == 0 && daftar[i].status == PENDING) {
+                daftar[i].status = DELIVERED;
+                strncpy(daftar[i].delivered_by, agen, MAX_NAME_LEN);
+
+                FILE* log = fopen("delivery.log", "a");
+                if (log) {
+                    time_t t = time(NULL);
+                    struct tm* tm_info = localtime(&t);
+                    char waktu[64];
+                    strftime(waktu, sizeof(waktu), "%d/%m/%Y %H:%M:%S", tm_info);
+
+                    fprintf(log, "[%s] [%s] Express package delivered to %s in %s\n",
+                            waktu, agen, daftar[i].nama, daftar[i].alamat);
+                    fclose(log);
+                }
+
+                printf("[%s] mengantar paket Express ke %s\n", agen, daftar[i].nama);
+                sleep(1);
+            }
+        }
+        sleep(2);
+    }
+
+    detach_shared_memory(daftar);
+    return NULL;
+}
+
+int main() {
+    pthread_t t1, t2, t3;
+    pthread_create(&t1, NULL, jalankan_agen, "AGENT A");
+    pthread_create(&t2, NULL, jalankan_agen, "AGENT B");
+    pthread_create(&t3, NULL, jalankan_agen, "AGENT C");
+
+    pthread_join(t1, NULL);
+    pthread_join(t2, NULL);
+    pthread_join(t3, NULL);
+
+    return 0;
+}
+```
+- Fungsi jalankan_agen() digunakan oleh semua agen.
+
+- Setiap agen memeriksa array Order dalam shared memory.
+
+- Jika menemukan order bertipe "Express" dan status PENDING, maka:
+
+- Status diubah menjadi DELIVERED,
+
+- Nama agen dicatat di field delivered_by,
+
+- Log dicetak ke file delivery.log.
+
+- Log ini sesuai dengan format yang ditentukan oleh soal. Proses berjalan terus-menerus dalam loop while(1) sehingga agen akan terus mengecek order baru.
+
+
+### C.Pengiriman Bertipe Reguler
+```
+void perintah_kirim(char* target, char* pengirim, Order* data) {
+    for (int i = 0; i < MAX_ORDERS; i++) {
+        if (strcmp(data[i].nama, target) == 0 && strcmp(data[i].jenis, "Reguler") == 0 && data[i].status == PENDING) {
+            data[i].status = DELIVERED;
+            strncpy(data[i].delivered_by, pengirim, MAX_NAME_LEN);
+
+            FILE* log = fopen("delivery.log", "a");
+            if (log) {
+                time_t t = time(NULL);
+                struct tm* tm_info = localtime(&t);
+                char waktu[64];
+                strftime(waktu, sizeof(waktu), "%d/%m/%Y %H:%M:%S\", tm_info);
+                fprintf(log, "[%s] [AGENT %s] Reguler package delivered to %s in %s\\n",
+                        waktu, pengirim, data[i].nama, data[i].alamat);
+                fclose(log);
+            }
+            break;
+        }
+    }
+}
+```
+- Fungsi ini dipanggil ketika user memberikan perintah ./dispatcher -deliver [Nama].
+
+- Program akan mencari nama target di array shared memory.
+
+- Jika ditemukan dan jenisnya "Reguler" serta statusnya masih PENDING, maka:
+
+- Status diubah menjadi DELIVERED,
+
+- Nama user disimpan sebagai delivered_by,
+
+- Catatan pengiriman ditulis ke file delivery.log sesuai format soal.
+
+  **Pemanggilan fungsi**
+  ```
+if (argc == 3 && strcmp(argv[1], "-deliver") == 0) {
+    char* user = getenv("USER");
+    if (!user) user = "USER";
+    perintah_kirim(argv[2], user, data);
+}
+  ```
+
+- Bagian ini ada di main() dispatcher.
+
+- Mendapatkan nama user dari environment variable USER.
+
+- Lalu memanggil perintah_kirim.
+
+### D. Mengecek Status Pesanan
+```
+void perintah_status(char* nama, Order* data) {
+    for (int i = 0; i < MAX_ORDERS; i++) {
+        if (strcmp(data[i].nama, nama) == 0) {
+            if (data[i].status == DELIVERED)
+                printf("Status for %s: Delivered by %s\\n", nama, data[i].delivered_by);
+            else
+                printf("Status for %s: Pending\\n", nama);
+            return;
+        }
+    }
+    printf("Status for %s: Not found\\n", nama);
+}
+
+```
+
+- Fungsi ini mencari nama dalam array order.
+
+Jika ditemukan:
+
+- Jika statusnya DELIVERED, maka ditampilkan Delivered by [agent].
+
+- Jika belum dikirim, maka ditampilkan Pending.
+
+- Jika nama tidak ditemukan, tampilkan Not found.
+
+    ** Panggilan fungsi **
+```
+else if (argc == 3 && strcmp(argv[1], "-status") == 0) {
+    perintah_status(argv[2], data);
+}
+```
+
+### E. Melihat Daftar Semua Pesanan
+
+```
+void perintah_list(Order* data) {
+    for (int i = 0; i < MAX_ORDERS; i++) {
+        if (strlen(data[i].nama) > 0) {
+            if (data[i].status == DELIVERED) {
+                printf("Status for %s: Delivered by %s\\n", data[i].nama, data[i].delivered_by);
+            } else {
+                printf("Status for %s: Pending\\n", data[i].nama);
+            }
+        }
+    }
+}
+
+```
+- Fungsi ini menampilkan semua order yang ada di shared memory.
+
+Untuk setiap order:
+
+- Jika statusnya DELIVERED, ditampilkan nama dan agen pengantar.
+
+- Jika PENDING, hanya ditampilkan statusnya.
+
+Cocok untuk perintah -list agar user tahu semua progress pengiriman.
+
+      ** Pemanggilan Fungsi **
+```
+else if (argc == 2 && strcmp(argv[1], "-list") == 0) {
+    perintah_list(data);
+}
+```
+
 
 # soal-3
 **Dikerjakan oleh Mutiara Diva Jaladitha (5027241083)**
